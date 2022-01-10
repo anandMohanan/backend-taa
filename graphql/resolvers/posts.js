@@ -26,7 +26,7 @@ module.exports = {
     },
   },
   Mutation: {
-    async createPost(_, { body }, context) {
+    async createPost(_, { body, photo }, context) {
       const user = checkAuth(context);
       if (body.trim() == "") {
         throw new UserInputError("Post should not be empty", {
@@ -37,6 +37,7 @@ module.exports = {
       }
       const newPost = new Post({
         body,
+        photo,
         user: user.id,
         username: user.username,
         createdAt: new Date().toISOString(),
@@ -79,7 +80,7 @@ module.exports = {
       } else throw new UserInputError("Post not found");
     },
     async deleteComment(_, { postId, commentId }, context) {
-      const { username } = checkauth(context);
+      const { username } = checkAuth(context);
 
       const post = await Post.findById(postId);
       if (post) {

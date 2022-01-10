@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { UserInputError } = require("apollo-server");
-
+const checkAuth = require("../../util/checkAuth");
 const User = require("../../models/User");
 const {
   validateRegisterInput,
@@ -91,6 +91,16 @@ module.exports = {
         id: user.id,
         token,
       };
+    },
+    async userProfile(_, { photo, bio }, context) {
+      const { username } = checkAuth(context);
+      const user = await User.findOne({ username });
+      console.log(user);
+      user.photo = photo;
+      user.bio = bio;
+      console.log(user);
+      await user.save();
+      return user;
     },
   },
 };
