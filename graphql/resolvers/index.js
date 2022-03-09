@@ -13,8 +13,5 @@ module.exports = {
       console.log(parent);
       return parent.likes.length;
     },
-    commentCount: (parent) => {
-      return parent.comments.length;
-    },
   },
 };

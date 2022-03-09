@@ -6,7 +6,7 @@ module.exports = {
   Query: {
     async getPosts() {
       try {
-        const posts = await Post.find().sort({ createdAt: 1 });
+        const posts = await Post.find().sort({ createdAt: -1 });
         return posts;
       } catch (e) {
         console.log(e);
@@ -26,7 +26,7 @@ module.exports = {
     },
   },
   Mutation: {
-    async createPost(_, { body, photo }, context) {
+    async createPost(_, { title, body }, context) {
       const user = checkAuth(context);
       if (body.trim() == "") {
         throw new UserInputError("Post should not be empty", {
@@ -35,9 +35,16 @@ module.exports = {
           },
         });
       }
+      if (title.trim() == "") {
+        throw new UserInputError("Post should not be empty", {
+          errors: {
+            title: "Title should not be empty",
+          },
+        });
+      }
       const newPost = new Post({
+        title,
         body,
-        photo,
         user: user.id,
         username: user.username,
         createdAt: new Date().toISOString(),
@@ -59,41 +66,7 @@ module.exports = {
         throw new Error(e);
       }
     },
-    async createComment(_, { postId, body }, context) {
-      const { username } = checkAuth(context);
-      if (body.trim() == "") {
-        throw new UserInputError("comments should not be empty", {
-          errors: {
-            body: "Comment should not be empty",
-          },
-        });
-      }
-      const post = await Post.findById(postId);
-      if (post) {
-        post.comments.unshift({
-          body,
-          username,
-          createdAt: new Date().toISOString(),
-        });
-        await post.save();
-        return post;
-      } else throw new UserInputError("Post not found");
-    },
-    async deleteComment(_, { postId, commentId }, context) {
-      const { username } = checkAuth(context);
 
-      const post = await Post.findById(postId);
-      if (post) {
-        const commentindex = post.comments.findIndex((c) => c.id === commentId);
-        if (post.comments[commentindex].username === username) {
-          post.comments.splice(commentindex, 1);
-          await post.save();
-          return post;
-        } else {
-          throw new AuthenticationError("Action not allowed");
-        }
-      } else throw new UserInputError("Post not found");
-    },
     async likePost(_, { postId }, context) {
       const { username } = checkAuth(context);
       const post = await Post.findById(postId);
